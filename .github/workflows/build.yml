@@ -1,0 +1,41 @@
+name: Regenerate Dashboard
+
+on:
+  push:
+    paths:
+      - '*.xlsx'
+      - 'regenerate_dashboard.py'
+      - '.github/workflows/build.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install openpyxl
+
+      - name: Run regenerator script
+        run: python regenerate_dashboard.py
+
+      - name: Commit updated dashboard
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          if git diff --quiet --cached; then
+            echo "No changes to commit."
+          else
+            git commit -m "Auto-regenerate dashboard [skip ci]"
+            git push
+          fi
